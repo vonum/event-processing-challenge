@@ -13,9 +13,7 @@ For this assignment, you will need to implement a set of components that:
 
 ## Setup
 
-First, please fork this repository.
-
-Then, run `make`. This will start the `database` service, which is a Postgres server, and run the needed DB migrations.
+Clone the repository and run `make`. This will start the `database` service, which is a Postgres server, and run the needed DB migrations.
 
 Optionally, you can run `make generator` to see how the generator works. It will run for 5 seconds, logging the generated events, then exit.
 
