@@ -49,7 +49,7 @@ func (p *Publisher) Send(event *casino.Event) {
     HasWon: event.HasWon,
     CreatedAt: int32(event.CreatedAt.Unix()),
   }
-  logging.LogEventMessage("Sending event message", &event_msg)
+  logging.LogEventMessage("\nSending event message", &event_msg)
 
   body, _ := proto.Marshal(&event_msg)
   fmt.Println("BODY")
@@ -66,5 +66,5 @@ func (p *Publisher) Send(event *casino.Event) {
     },
   )
 
-  logging.LogEventMessage("Successfully sent event message", &event_msg)
+  logging.LogEventMessage("\nSuccessfully sent event message", &event_msg)
 }

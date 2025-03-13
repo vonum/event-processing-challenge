@@ -54,7 +54,7 @@ func (s *Subscriber) Read() {
       if err != nil {
         fmt.Println("Failed to parse message", err)
       } else {
-        logging.LogEventMessage("Received event message:", &event)
+        logging.LogEventMessage("\nReceived event message:", &event)
       }
     }
   }()
