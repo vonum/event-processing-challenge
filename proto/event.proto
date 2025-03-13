@@ -1,0 +1,15 @@
+syntax = "proto3";
+package bitstars;
+
+option go_package = "github.com/protocolbuffers/protobuf/examples/go/tutorialpb";
+
+// use timestamp protobuf lib
+message Event {
+  int32 id = 1;
+  int32 player_id = 2;
+  string type = 3;
+  int32 amount = 4;
+  string currency = 5;
+  bool has_won = 6;
+  int32 created_at = 7;
+}
