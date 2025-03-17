@@ -1,7 +1,6 @@
 package pubsub
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/Bitstarz-eng/event-processing-challenge/internal/casino"
@@ -23,10 +22,10 @@ func NewSubscriber(
   queue string,
 ) *Subscriber {
   conn, _ := ampq.Dial(url)
-  logging.LogInfo("Successfully connected to broker")
+  logging.LogSetup("Successfully connected to broker")
 
   ch, _ := conn.Channel()
-  logging.LogInfo("Successfully opened a channel")
+  logging.LogSetup("Successfully opened a channel")
 
   q, _ := ch.QueueDeclare(
     "events", // name
@@ -95,6 +94,6 @@ func (s *Subscriber) Read() {
     }
   }()
 
-  fmt.Println(" [*] Waiting for messages. To exit press CTRL+C")
+  logging.LogSetup(" [*] Waiting for messages. To exit press CTRL+C")
   <-forever
 }

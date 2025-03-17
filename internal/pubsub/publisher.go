@@ -18,10 +18,10 @@ type Publisher struct {
 
 func NewPublisher(url, queue string) *Publisher {
   conn, _ := amqp.Dial(url)
-  logging.LogInfo("Successfully connected to broker")
+  logging.LogSetup("Successfully connected to broker.")
 
   ch, _ := conn.Channel()
-  logging.LogInfo("Successfully opened a channel")
+  logging.LogSetup("Successfully opened a channel.")
 
   q, _ := ch.QueueDeclare(
     queue,   // queue name

@@ -15,7 +15,8 @@ func LogInfo(msg string) {
   color.Cyan(msg)
 }
 
-func LogEvent() {
+func LogSetup(msg string) {
+  color.Yellow(msg)
 }
 
 func LogEventPretty(event casino.Event) {
@@ -63,7 +64,8 @@ func LogEventPretty(event casino.Event) {
 }
 
 func LogEventMessage(msg string, event *genproto.Event) {
-  color.Cyan(msg, event.String(), "\n")
+  color.HiBlue(msg, event.String())
+  color.HiBlue("\n")
 }
 
 func LogError(msg string) {

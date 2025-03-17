@@ -19,12 +19,9 @@ const QoutesTimeoutS = 60
 // From spamming the external api
 // If a worker manages to acquire a lock, it will update the cache and release it
 // If a worker doesn't manage to acquire a lock, it will poll the cache
-// All qoutes are updated at the same time for simplicity
+// All quotes are updated at the same time for simplicity
 
-// Data is stored as json since it was decided to store all qoutes together for simplicity
-
-// Handle worker acquiring a lock failure
-// Not all error handling is covered
+// Data is stored as json since it was decided to store all quotes together for simplicity
 
 type Client struct {
   client *redis.Client

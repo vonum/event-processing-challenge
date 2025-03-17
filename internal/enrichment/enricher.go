@@ -14,6 +14,7 @@ import (
 const EURCurrency = "EUR"
 const ApiTimeout = 5
 const TickDurationMS = 200
+const QuoteTimeoutS = 10
 
 type Enricher struct {
   exchangeClient *exchange.Client
@@ -42,20 +43,24 @@ func (e *Enricher) Enrich(event *casino.Event) error {
     event.AmountEUR = event.Amount
   } else {
     logging.LogInfo(fmt.Sprintf("Getting EUR amount value for event %d.", event.ID))
-    exchangeRate := e.getExchangeRate(event.Currency)
-    logging.LogInfo(fmt.Sprintf("Exchange rate is %f.", exchangeRate))
+
+    exchangeRate, err := e.getExchangeRate(event.Currency)
+    if err != nil {
+      return err
+    }
+
     event.AmountEUR = event.Amount * int(exchangeRate)
   }
 
-  logging.LogInfo(fmt.Sprintf("\nGetting details for user %d.", event.PlayerID))
+  logging.LogInfo(fmt.Sprintf("Getting details for user %d.\n", event.PlayerID))
   user, err := e.dbClient.GetUser(event.PlayerID)
 
   if err != nil {
-    logging.LogInfo(fmt.Sprintf("\nDetails for player %d not found.", event.PlayerID))
+    logging.LogInfo(fmt.Sprintf("Details for player %d not found.\n", event.PlayerID))
   } else {
     logging.LogInfo(
       fmt.Sprintf(
-        "\nPlayer %d found with email %s and last sign in at: %s.",
+        "Player %d found with email %s and last sign in at: %s.\n",
         event.PlayerID,
         user.Email,
         user.LastSignedInAt,
@@ -67,22 +72,24 @@ func (e *Enricher) Enrich(event *casino.Event) error {
   return nil
 }
 
-func (e *Enricher) getExchangeRate(currency string) float32 {
+func (e *Enricher) getExchangeRate(currency string) (float32, error) {
   ticker := time.NewTicker(TickDurationMS * time.Millisecond)
+  timeout := time.After(QuoteTimeoutS * time.Second)
 
   for {
     select {
+    case <- timeout:
+      return 0, &FetchingQuotesTimeoutError{QuoteTimeoutS}
     case <- ticker.C:
       // try to read from cache and return value
       logging.LogInfo(fmt.Sprintf("Reading value from cache for %s.", currency))
       quotes, err := e.cacheClient.ReadQuotes()
 
       if err == nil {
-        fmt.Println(quotes)
         exchangeRate := quotes.GetQuote(currency)
         logging.LogInfo(fmt.Sprintf("Found value in cache for %s: %f.", currency, exchangeRate))
 
-        return exchangeRate
+        return exchangeRate, nil
       }
 
       logging.LogInfo(fmt.Sprintf("Value not found in cache for %s.", currency))
@@ -94,22 +101,21 @@ func (e *Enricher) getExchangeRate(currency string) float32 {
       ackquiredLock, err := e.cacheClient.AcquireLock()
 
       if ackquiredLock {
-        logging.LogInfo("Acquired lock for consuming the api.")
+        logging.LogInfo("Getting exchange rates from the api.")
         quotes := e.exchangeClient.GetLatestExchangeRate(casino.Currencies)
-        logging.LogInfo("Got currencies exchange rates from the api.")
 
-        logging.LogInfo("Caching currencies")
+        logging.LogInfo("Caching currencies.")
         err := e.cacheClient.CacheQuotes(&quotes)
+
         if err != nil {
-          fmt.Println(err)
+          logging.LogError("Failed to update cache.")
         }
 
         e.cacheClient.ReleaseLock()
         logging.LogInfo("Released lock.")
 
-        fmt.Println(quotes)
         exchangeRate := quotes.GetQuote(currency)
-        return exchangeRate
+        return exchangeRate, nil
       }
 
       logging.LogInfo(fmt.Sprintf("Failed to ackquire lock, retrying in %dms.", TickDurationMS))
