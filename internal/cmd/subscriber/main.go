@@ -5,9 +5,8 @@ import (
 )
 
 func main() {
-  const queue = "events"
   config := pubsub.LoadConfig()
 
-  subscriber := pubsub.NewSubscriber(config, queue)
+  subscriber := pubsub.NewSubscriber(config, pubsub.EventsQueue, pubsub.DeadLetterQueue)
   subscriber.Read()
 }

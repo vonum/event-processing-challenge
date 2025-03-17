@@ -46,10 +46,6 @@ func (c *Client) CacheQuotes(qoutes *exchange.Quotes) error {
     QoutesTimeoutS * time.Second,
   ).Err()
 
-  if err != nil {
-    panic(err)
-  }
-
   return err
 }
 

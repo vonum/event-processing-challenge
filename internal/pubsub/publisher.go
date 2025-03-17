@@ -3,12 +3,12 @@ package pubsub
 import (
 	"context"
 	"time"
+	"google.golang.org/protobuf/proto"
+	amqp "github.com/rabbitmq/amqp091-go"
 
 	"github.com/Bitstarz-eng/event-processing-challenge/internal/casino"
 	"github.com/Bitstarz-eng/event-processing-challenge/internal/genproto"
 	"github.com/Bitstarz-eng/event-processing-challenge/internal/logging"
-	amqp "github.com/rabbitmq/amqp091-go"
-	"google.golang.org/protobuf/proto"
 )
 
 type Publisher struct {
@@ -23,20 +23,16 @@ func NewPublisher(url, queue string) *Publisher {
   ch, _ := conn.Channel()
   logging.LogSetup("Successfully opened a channel.")
 
-  q, _ := ch.QueueDeclare(
-    queue,   // queue name
-    false,   // durable
-    false,   // delete when unused
-    false,   // exclusive
-    false,   // no-wait
-    nil,     // arguments
-  )
+  q := DeclareQueue(ch, queue)
 
   return &Publisher{Channel: ch, Queue: &q}
 }
 
 func (p *Publisher) Send(event *casino.Event) {
-  ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+  ctx, cancel := context.WithTimeout(
+    context.Background(),
+    PublishTimeoutS * time.Second,
+  )
   defer cancel()
 
   event_msg := genproto.Event{
@@ -49,20 +45,23 @@ func (p *Publisher) Send(event *casino.Event) {
     HasWon: event.HasWon,
     CreatedAt: int64(event.CreatedAt.Unix()),
   }
-  logging.LogEventMessage("\nSending event message", &event_msg)
+  logging.LogEventMessage("Sending event message:", &event_msg)
 
   body, _ := proto.Marshal(&event_msg)
 
-  p.Channel.PublishWithContext(ctx,
+  p.Channel.PublishWithContext(
+    ctx,
     "",           // exchange
     p.Queue.Name, // routing key
     false,        // mandatory
     false,        // immediate
     amqp.Publishing {
+      DeliveryMode: amqp.Persistent, // survives rabbitmq restart
       ContentType: "text/plain",
       Body:        body,
     },
   )
 
-  logging.LogEventMessage("\nSuccessfully sent event message", &event_msg)
+  logging.LogEventMessage("Successfully sent event message:", &event_msg)
+  logging.LogInfo("\n")
 }

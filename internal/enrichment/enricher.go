@@ -12,9 +12,9 @@ import (
 )
 
 const EURCurrency = "EUR"
-const ApiTimeout = 5
+const ApiTimeoutS = 3
 const TickDurationMS = 200
-const QuoteTimeoutS = 10
+const QuoteTimeoutS = 5
 
 type Enricher struct {
   exchangeClient *exchange.Client
@@ -27,7 +27,7 @@ func NewEnricher(
   redisAddr string,
   pgConn string,
 ) *Enricher {
-  exchangeClient := exchange.NewClient(apiKey, ApiTimeout)
+  exchangeClient := exchange.NewClient(apiKey, ApiTimeoutS)
   cacheClient := cache.NewClient(redisAddr)
   dbClient := db.NewClient(pgConn)
 
@@ -99,10 +99,13 @@ func (e *Enricher) getExchangeRate(currency string) (float32, error) {
 
       if ackquiredLock {
         logging.LogInfo("Getting exchange rates from the api.")
-        quotes := e.exchangeClient.GetLatestExchangeRate(casino.Currencies)
+        quotes, err := e.exchangeClient.GetLatestExchangeRate(casino.Currencies)
+        if err != nil {
+          return 0, err
+        }
 
         logging.LogInfo("Caching currencies.")
-        err := e.cacheClient.CacheQuotes(&quotes)
+        err = e.cacheClient.CacheQuotes(quotes)
 
         if err != nil {
           logging.LogError("Failed to update cache.")

@@ -2,6 +2,9 @@ package pubsub
 
 import "os"
 
+const EventsQueue = "events"
+const DeadLetterQueue = "dead_letter"
+
 type Config struct {
   ApiKey string
   RabbitMqAddr string

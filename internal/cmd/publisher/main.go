@@ -10,11 +10,10 @@ import (
 )
 
 func main() {
-  const queue = "events"
   config := pubsub.LoadConfig()
 
 
-  publisher := pubsub.NewPublisher(config.RabbitMqAddr, queue)
+  publisher := pubsub.NewPublisher(config.RabbitMqAddr, pubsub.EventsQueue)
 
   ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
   defer cancel()
