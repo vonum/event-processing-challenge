@@ -2,7 +2,10 @@ package pubsub
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/Bitstarz-eng/event-processing-challenge/internal/casino"
+	"github.com/Bitstarz-eng/event-processing-challenge/internal/enrichment"
 	"github.com/Bitstarz-eng/event-processing-challenge/internal/genproto"
 	"github.com/Bitstarz-eng/event-processing-challenge/internal/logging"
 	ampq "github.com/rabbitmq/amqp091-go"
@@ -12,9 +15,13 @@ import (
 type Subscriber struct {
   Channel *ampq.Channel
   Queue *ampq.Queue
+  Enricher *enrichment.Enricher
 }
 
-func NewSubscriber(url, queue string) *Subscriber {
+func NewSubscriber(
+  url string,
+  queue string,
+) *Subscriber {
   conn, _ := ampq.Dial(url)
   logging.LogInfo("Successfully connected to broker")
 
@@ -30,7 +37,16 @@ func NewSubscriber(url, queue string) *Subscriber {
     nil,     // arguments
   )
 
-  return &Subscriber{Channel: ch, Queue: &q}
+  e := enrichment.NewEnricher(
+    "1b894e89bd173b9bc1e5e3d55bb85c04",
+    "localhost:6379",
+    "127.0.0.1",
+    "casino",
+    "casino",
+    5432,
+  )
+
+  return &Subscriber{Channel: ch, Queue: &q, Enricher: e}
 }
 
 func (s *Subscriber) Read() {
@@ -47,14 +63,34 @@ func (s *Subscriber) Read() {
   var forever chan struct{}
 
   go func() {
-    var event genproto.Event
+    var eventMsg genproto.Event
 
     for d := range msgs {
-      err := proto.Unmarshal(d.Body, &event)
+      err := proto.Unmarshal(d.Body, &eventMsg)
       if err != nil {
-        fmt.Println("Failed to parse message", err)
+        logging.LogError("Failed to parse event message.")
+        logging.LogError(err.Error())
       } else {
-        logging.LogEventMessage("\nReceived event message:", &event)
+        logging.LogEventMessage("\nReceived event message:", &eventMsg)
+        event := casino.Event{
+          ID: int(eventMsg.Id),
+          PlayerID: int(eventMsg.PlayerId),
+          GameID: int(eventMsg.GameId),
+          Type: eventMsg.Type,
+          Amount: int(eventMsg.Amount),
+          Currency: eventMsg.Currency,
+          HasWon: eventMsg.HasWon,
+          CreatedAt: time.Unix(eventMsg.CreatedAt, 0),
+        }
+
+        err := s.Enricher.Enrich(&event)
+        if err != nil {
+          logging.LogError("Failed to enrich event.")
+          logging.LogError(err.Error())
+          continue
+        }
+
+        logging.LogEventPretty(event)
       }
     }
   }()

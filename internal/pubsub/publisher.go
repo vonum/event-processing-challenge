@@ -2,7 +2,6 @@ package pubsub
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Bitstarz-eng/event-processing-challenge/internal/casino"
@@ -41,19 +40,18 @@ func (p *Publisher) Send(event *casino.Event) {
   defer cancel()
 
   event_msg := genproto.Event{
-    Id: int32(event.ID),
-    PlayerId: int32(event.PlayerID),
+    Id: int64(event.ID),
+    PlayerId: int64(event.PlayerID),
+    GameId: int64(event.GameID),
     Type: event.Type,
-    Amount: int32(event.Amount),
+    Amount: int64(event.Amount),
     Currency: event.Currency,
     HasWon: event.HasWon,
-    CreatedAt: int32(event.CreatedAt.Unix()),
+    CreatedAt: int64(event.CreatedAt.Unix()),
   }
   logging.LogEventMessage("\nSending event message", &event_msg)
 
   body, _ := proto.Marshal(&event_msg)
-  fmt.Println("BODY")
-  fmt.Println(body)
 
   p.Channel.PublishWithContext(ctx,
     "",           // exchange

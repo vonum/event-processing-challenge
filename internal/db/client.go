@@ -32,7 +32,7 @@ func (c *Client) GetUser(userId int) (*User, error) {
   `
 
   row := c.db.QueryRow(query, userId)
-  err := row.Scan(&user.email, &user.last_signed_in_at)
+  err := row.Scan(&user.Email, &user.LastSignedInAt)
 
   if err != nil {
     return nil, err

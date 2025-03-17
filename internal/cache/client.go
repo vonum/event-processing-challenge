@@ -40,8 +40,8 @@ func NewClient(address string) *Client {
   return &Client{client}
 }
 
-func (c *Client) CacheQoutes(qoutes *exchange.Quotes) error {
-  qoutesJson := marshalQoutes(*qoutes)
+func (c *Client) CacheQuotes(qoutes *exchange.Quotes) error {
+  qoutesJson := marshalQuotes(*qoutes)
   err := c.client.Set(
     ctx.Background(),
     QoutesKey,
@@ -56,15 +56,15 @@ func (c *Client) CacheQoutes(qoutes *exchange.Quotes) error {
   return err
 }
 
-func (c *Client) ReadQoutes() (*exchange.Quotes, error) {
+func (c *Client) ReadQuotes() (*exchange.Quotes, error) {
   qoutesJson, err := c.client.Get(ctx.Background(), QoutesKey).Result()
   if err != nil {
     return nil, err
   }
-  return unmarshalQoutes([]byte(qoutesJson)), nil
+  return unmarshalQuotes([]byte(qoutesJson)), nil
 }
 
-func (c *Client) acquireLock() (bool, error) {
+func (c *Client) AcquireLock() (bool, error) {
   acquired, err := c.client.SetNX(
     ctx.Background(),
     LockKey,
@@ -75,16 +75,16 @@ func (c *Client) acquireLock() (bool, error) {
   return acquired, err
 }
 
-func (c *Client) releaseLock() {
+func (c *Client) ReleaseLock() {
   c.client.Del(ctx.Background(), LockKey)
 }
 
-func marshalQoutes(qoutes exchange.Quotes) string {
+func marshalQuotes(qoutes exchange.Quotes) string {
   qoutesJson, _ := json.Marshal(qoutes)
   return string(qoutesJson)
 }
 
-func unmarshalQoutes(qoutesJson []byte) *exchange.Quotes {
+func unmarshalQuotes(qoutesJson []byte) *exchange.Quotes {
   var qoutes exchange.Quotes
   json.Unmarshal(qoutesJson, &qoutes)
   return &qoutes
