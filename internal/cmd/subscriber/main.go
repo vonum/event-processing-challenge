@@ -5,9 +5,9 @@ import (
 )
 
 func main() {
-  const url = "amqp://guest:guest@localhost:5672/"
   const queue = "events"
+  config := pubsub.LoadConfig()
 
-  subscriber := pubsub.NewSubscriber(url, queue)
+  subscriber := pubsub.NewSubscriber(config, queue)
   subscriber.Read()
 }

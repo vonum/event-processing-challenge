@@ -10,10 +10,11 @@ import (
 )
 
 func main() {
-  const url = "amqp://guest:guest@localhost:5672/"
   const queue = "events"
+  config := pubsub.LoadConfig()
 
-  publisher := pubsub.NewPublisher(url, queue)
+
+  publisher := pubsub.NewPublisher(config.RabbitMqAddr, queue)
 
   ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
   defer cancel()

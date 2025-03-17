@@ -18,10 +18,10 @@ type Subscriber struct {
 }
 
 func NewSubscriber(
-  url string,
+  config *Config,
   queue string,
 ) *Subscriber {
-  conn, _ := ampq.Dial(url)
+  conn, _ := ampq.Dial(config.RabbitMqAddr)
   logging.LogSetup("Successfully connected to broker")
 
   ch, _ := conn.Channel()
@@ -37,12 +37,9 @@ func NewSubscriber(
   )
 
   e := enrichment.NewEnricher(
-    "1b894e89bd173b9bc1e5e3d55bb85c04",
-    "localhost:6379",
-    "127.0.0.1",
-    "casino",
-    "casino",
-    5432,
+    config.ApiKey,
+    config.RedisAddr,
+    config.PgConn,
   )
 
   return &Subscriber{Channel: ch, Queue: &q, Enricher: e}

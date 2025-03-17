@@ -25,14 +25,11 @@ type Enricher struct {
 func NewEnricher(
   apiKey string,
   redisAddr string,
-  pgHost string,
-  pgUser string,
-  pgPassword string,
-  pgPort int,
+  pgConn string,
 ) *Enricher {
   exchangeClient := exchange.NewClient(apiKey, ApiTimeout)
   cacheClient := cache.NewClient(redisAddr)
-  dbClient := db.NewClient(pgHost, pgUser, pgPassword, pgPort)
+  dbClient := db.NewClient(pgConn)
 
   return &Enricher{exchangeClient, cacheClient, dbClient}
 }

@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
   _ "github.com/lib/pq"
 )
 
@@ -10,16 +9,8 @@ type Client struct {
   db *sql.DB
 }
 
-func NewClient(host, user, password string, port int) *Client {
-  dataSource := fmt.Sprintf(
-    "host=%s port=%d user=%s password=%s sslmode=disable",
-    host,
-    port,
-    user,
-    password,
-  )
-
-  db, _ := sql.Open("postgres", dataSource)
+func NewClient(pgConn string) *Client {
+  db, _ := sql.Open("postgres", pgConn)
   return &Client{db}
 }
 
