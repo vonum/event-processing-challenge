@@ -10,6 +10,7 @@ type Config struct {
   RabbitMqAddr string
   RedisAddr string
   PgConn string
+  ApiUrl string
 }
 
 func LoadConfig() *Config {
@@ -24,7 +25,9 @@ func LoadConfig() *Config {
     "host=127.0.0.1 port=5432 user=casino password=casino sslmode=disable",
   )
 
-  return &Config{apiKey, rabbitMqAddr, redisAddr, pgConn}
+  apiUrl := getEnv("API_URL", "http://localhost:3000")
+
+  return &Config{apiKey, rabbitMqAddr, redisAddr, pgConn, apiUrl}
 }
 
 func getEnv(key, fallback string) string {

@@ -1,9 +1,8 @@
 syntax = "proto3";
 package bitstars;
 
-option go_package = "github.com/protocolbuffers/protobuf/examples/go/tutorialpb";
+option go_package = "github.com/Bitstarz-eng/event-processing-challenge/internal/genproto";
 
-// use timestamp protobuf lib
 message Event {
   int64 id = 1;
   int64 player_id = 2;

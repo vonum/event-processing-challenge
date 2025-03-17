@@ -21,9 +21,8 @@ func main() {
   eventCh := generator.Generate(ctx)
 
   for event := range eventCh {
-    // log.Printf("%#v\n", event)
     publisher.Send(&event)
-    time.Sleep(3 * time.Second)
+    time.Sleep(500 * time.Millisecond)
   }
 
   logging.LogInfo("Finished sending messages.")

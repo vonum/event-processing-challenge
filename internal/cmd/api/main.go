@@ -8,10 +8,11 @@ import (
 
 func main() {
   const port = ":3000"
-  handler := api.ApiHandler{}
+  handler := api.NewApiHandler()
 
   http.HandleFunc("/health", handler.Health)
   http.HandleFunc("/materialize", handler.Materialize)
+  http.HandleFunc("/events", handler.PostEvent)
 
   server := &http.Server{Addr: port}
 
