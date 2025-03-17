@@ -28,11 +28,10 @@ func NewClient(apiKey string, timeout int) *Client {
     }
 }
 
-func (c *Client) GetLatestExchangeRate(currencies []string) {
+func (c *Client) GetLatestExchangeRate(currencies []string) Quotes {
   curr := strings.Join(casino.Currencies, ",")
 
   url := fmt.Sprintf("%s?access_key=%s&source=EUR&currencies=%s", c.BaseUrl, c.apiKey, curr)
-  fmt.Println(url)
   req, _ := http.NewRequest("GET", url, nil)
 
   res, _ := c.HttpClient.Do(req)
@@ -43,7 +42,5 @@ func (c *Client) GetLatestExchangeRate(currencies []string) {
 
   json.NewDecoder(res.Body).Decode(&quotes)
 
-  fmt.Println(res.StatusCode)
-  // fmt.Println(res.Body)
-  fmt.Println(quotes)
+  return quotes
 }
