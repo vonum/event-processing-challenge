@@ -46,7 +46,7 @@ func (e *Enricher) Enrich(event *casino.Event) error {
       return err
     }
 
-    event.AmountEUR = event.Amount * int(exchangeRate)
+    event.AmountEUR = int(float32(event.Amount) / exchangeRate)
   }
 
   logging.LogInfo(fmt.Sprintf("Getting details for user %d.\n", event.PlayerID))

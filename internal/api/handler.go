@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -87,9 +86,7 @@ func (h *ApiHandler) smaPerSecond(seconds int) float32 {
   t := time.Now().Unix()
   s := 0
   for i := 0; i < seconds; i++ {
-    v := h.EventsPerSecond[t - int64(i)]
-    fmt.Println(v)
-    s += v
+    s += h.EventsPerSecond[t - int64(i)]
   }
 
   if s == 0 {

@@ -14,7 +14,7 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
-  apiKey := getEnv("API_KEY", "")
+  apiKey := getEnv("API_KEY", "1b894e89bd173b9bc1e5e3d55bb85c04")
   rabbitMqAddr := getEnv(
     "RABBITMQ_ADDRESS",
     "amqp://guest:guest@localhost:5672/",
