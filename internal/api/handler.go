@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/Bitstarz-eng/event-processing-challenge/internal/casino"
 )
 
 type ApiHandler struct {
+  lock *sync.Mutex
   StartTime time.Time
   NEvents int
   UserBets map[int]int
@@ -18,10 +20,12 @@ type ApiHandler struct {
   TPBets TopStats
   TPWins TopStats
   TPDeposits TopStats
+  EventsPerSecond map[int64]int
 }
 
 func NewApiHandler() *ApiHandler {
   return &ApiHandler{
+    lock: &sync.Mutex{},
     StartTime: time.Now(),
     NEvents: 0,
     UserBets: make(map[int]int),
@@ -30,6 +34,7 @@ func NewApiHandler() *ApiHandler {
     TPBets: TopStats{},
     TPWins: TopStats{},
     TPDeposits: TopStats{},
+    EventsPerSecond: make(map[int64]int),
   }
 }
 
@@ -37,7 +42,7 @@ func (h *ApiHandler) Materialize(w http.ResponseWriter, r *http.Request) {
   stats := MaterializedStats{
     EventsTotal: h.NEvents,
     EventsPerMinute: h.eventsPerMinute(),
-    EventsPerSecondMovingAverage: 1.1,
+    EventsPerSecondMovingAverage: h.smaPerSecond(10),
     TopPlayerBets: h.TPBets,
     TopPlayerWins: h.TPWins,
     TopPlayerDeposits: h.TPDeposits,
@@ -47,43 +52,28 @@ func (h *ApiHandler) Materialize(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ApiHandler) PostEvent(w http.ResponseWriter, r *http.Request) {
-  fmt.Println("Received event")
+  h.lock.Lock()
+  defer h.lock.Unlock()
+
   decoder := json.NewDecoder(r.Body)
   var event casino.Event
   decoder.Decode(&event)
-  fmt.Println(event)
 
   h.NEvents++
 
   switch event.Type {
   case "bet":
     h.updateStats(event.PlayerID, 1, h.UserBets, &h.TPBets)
-    // bets := h.UserBets[event.PlayerID] + 1
-    // h.UserBets[event.PlayerID] = bets
-    // if bets > h.TPBets.Count {
-    //   h.TPBets.ID = event.PlayerID
-    //   h.TPBets.Count = bets
-    // }
   case "deposit":
     h.updateStats(event.PlayerID, event.AmountEUR, h.UserDeposits, &h.TPDeposits)
-    // deposits := h.UserDeposits[event.PlayerID] + event.AmountEUR
-    // h.UserDeposits[event.PlayerID] = deposits
-    // if deposits > h.TPDeposits.Count {
-    //   h.TPDeposits.ID = event.PlayerID
-    //   h.TPDeposits.Count = deposits
-    // }
   }
 
   if event.HasWon {
     h.updateStats(event.PlayerID, 1, h.UserWins, &h.TPWins)
-    // wins := h.UserWins[event.PlayerID] + 1
-    // h.UserWins[event.PlayerID] = wins
-    // if wins > h.TPWins.Count {
-    //   h.TPWins.ID = event.PlayerID
-    //   h.TPWins.Count = wins
-    // }
   }
 
+  second := time.Now().Unix()
+  h.EventsPerSecond[second]++
 }
 
 func (h *ApiHandler) eventsPerMinute() float32 {
@@ -91,6 +81,22 @@ func (h *ApiHandler) eventsPerMinute() float32 {
   timedelta := t.Sub(h.StartTime).Minutes()
 
   return float32(h.NEvents) / float32(timedelta)
+}
+
+func (h *ApiHandler) smaPerSecond(seconds int) float32 {
+  t := time.Now().Unix()
+  s := 0
+  for i := 0; i < seconds; i++ {
+    v := h.EventsPerSecond[t - int64(i)]
+    fmt.Println(v)
+    s += v
+  }
+
+  if s == 0 {
+    return 0
+  }
+
+  return float32(s) / float32(seconds)
 }
 
 func (h *ApiHandler) updateStats(

@@ -14,24 +14,3 @@ type MaterializedStats struct {
   TopPlayerWins     TopStats `json:"top_player_wins"`
   TopPlayerDeposits TopStats `json:"top_player_deposits"`
 }
-
-// ```json
-// {
-//   "events_total": 12345,
-//   "events_per_minute": 123.45,
-//   "events_per_second_moving_average": 3.12,
-//   "top_player_bets": {
-//     "id": 10,
-//     "count": 150
-//   },
-//   "top_player_wins": {
-//     "id": 11,
-//     "count": 50
-//   },
-//   "top_player_deposits": {
-//     "id": 12,
-//     "count": 15000
-//   }
-// }
-// ```
-

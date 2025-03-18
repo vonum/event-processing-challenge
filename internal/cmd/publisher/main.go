@@ -22,7 +22,7 @@ func main() {
 
   for event := range eventCh {
     publisher.Send(&event)
-    time.Sleep(500 * time.Millisecond)
+    time.Sleep(300 * time.Millisecond)
   }
 
   logging.LogInfo("Finished sending messages.")
