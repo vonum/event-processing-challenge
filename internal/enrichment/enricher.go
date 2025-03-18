@@ -3,6 +3,7 @@ package enrichment
 import (
 	"fmt"
 	"time"
+	"github.com/dustin/go-humanize"
 
 	"github.com/Bitstarz-eng/event-processing-challenge/internal/cache"
 	"github.com/Bitstarz-eng/event-processing-challenge/internal/casino"
@@ -66,6 +67,8 @@ func (e *Enricher) Enrich(event *casino.Event) error {
     event.Player = casino.Player{Email: user.Email, LastSignedInAt: user.LastSignedInAt}
   }
 
+  event.Description = e.formatDescription(event)
+
   return nil
 }
 
@@ -124,4 +127,59 @@ func (e *Enricher) getExchangeRate(currency string) (float32, error) {
       // keep trying
     }
   }
+}
+
+func (e *Enricher) formatDescription(event *casino.Event) string {
+  var dsc string
+  switch event.Type {
+  case "game_start":
+    title := casino.Games[event.GameID].Title
+    dsc = fmt.Sprintf(
+      "Player #%d started playing a game \"%s\" on %s.",
+      event.PlayerID,
+      title,
+      formatTime(event.CreatedAt),
+    )
+  case "bet":
+    title := casino.Games[event.GameID].Title
+    dsc = fmt.Sprintf(
+      "Player #%s placed a bet of %d%s (%d EUR) on a game \"%s\" on %s.",
+      event.Player.Email,
+      event.Amount,
+      event.Currency,
+      event.AmountEUR,
+      title,
+      formatTime(event.CreatedAt),
+    )
+  case "deposit":
+    dsc = fmt.Sprintf(
+      "Player #%d made a deposit of %d EUR on %s.",
+      event.PlayerID,
+      event.AmountEUR,
+      formatTime(event.CreatedAt),
+    )
+  case "game_stop":
+    title := casino.Games[event.GameID].Title
+    dsc = fmt.Sprintf(
+      "Player #%d stopped playing a game \"%s\" on %s.",
+      event.PlayerID,
+      title,
+      formatTime(event.CreatedAt),
+    )
+  default:
+    dsc = fmt.Sprintf("Unknown event %s", event.Type)
+  }
+
+  return dsc
+}
+
+func formatTime(t time.Time) string {
+  return fmt.Sprintf(
+    "%s %s, %d at %02d:%02d UTC",
+    t.Format("January"),
+    humanize.Ordinal(t.Day()),
+    t.Year(),
+    t.Hour(),
+    t.Minute(),
+  )
 }

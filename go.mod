@@ -10,6 +10,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/redis/go-redis/v9 v9.7.1
+	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/net v0.0.0-20220526153639-5463443f8c37
 	google.golang.org/protobuf v1.36.5
 )

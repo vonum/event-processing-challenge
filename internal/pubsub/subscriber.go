@@ -106,6 +106,7 @@ func (s *Subscriber) Read() {
         // by default, message will be routed to a different consumer
         // if the connection is lost or if timeout is exceeded
         logging.LogEventPretty(event)
+        logging.LogEvent(event)
 
         logging.LogInfo("Posting event to api.")
         s.PostEvent(&event)

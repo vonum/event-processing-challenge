@@ -60,3 +60,8 @@ failing.
 4. All components should be containerized and deployed with a container
    orchestration service like kubernetes.
 5. The api is very minimalistic and should be refactored
+6. The api should have a go routine that would free memory for events per second
+   to avoid consuming all process memory
+7. Adding context to logs, like worker id, event id etc. This would make log
+   aggregation easier. Current logging setup is made for easier monitoring of
+   components locally.
