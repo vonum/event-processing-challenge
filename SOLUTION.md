@@ -1,7 +1,7 @@
 # Event processing task
 ## Setup
 1. `go mod download`
-2. `docker-compose up database rabbitmq redis api`
+2. `make run`
 3. `make migrate`
 
 ## Running components
