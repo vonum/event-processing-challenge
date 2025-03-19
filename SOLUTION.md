@@ -52,6 +52,13 @@ Quotes will expire with a specified TTL.
 Locks will also expire to prevent deadlocks due to workers holding the lock
 failing.
 
+## Api
+Api has a lot of room for improvement as it was not the focus. It is done just
+to be done.
+You can consume the api with:
+1. `curl localhost:3000/materialize`
+2. `curl localhost:3000/materialize?window_size=10`
+
 ## Further improvements
 1. RabbitMQ configuration could be further explored to tune the setup.
 2. Much better error handling -> currently only a few errors are handled while
