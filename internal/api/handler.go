@@ -3,11 +3,14 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/Bitstarz-eng/event-processing-challenge/internal/casino"
 )
+
+const WindowSize = 10
 
 type ApiHandler struct {
   lock *sync.Mutex
@@ -38,10 +41,18 @@ func NewApiHandler() *ApiHandler {
 }
 
 func (h *ApiHandler) Materialize(w http.ResponseWriter, r *http.Request) {
+  var window_size int
+  param := r.URL.Query().Get("window_size")
+  if param == "" {
+    window_size = WindowSize
+  } else {
+    window_size, _ = strconv.Atoi(param)
+  }
+
   stats := MaterializedStats{
     EventsTotal: h.NEvents,
     EventsPerMinute: h.eventsPerMinute(),
-    EventsPerSecondMovingAverage: h.smaPerSecond(10),
+    EventsPerSecondMovingAverage: h.smaPerSecond(window_size),
     TopPlayerBets: h.TPBets,
     TopPlayerWins: h.TPWins,
     TopPlayerDeposits: h.TPDeposits,

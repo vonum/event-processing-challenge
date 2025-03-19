@@ -144,7 +144,6 @@ func (s *Subscriber) PublishToDLQ(msg []byte) {
 func (s *Subscriber) PostEvent(event *casino.Event) {
   // error handling
   apiUrl, _ := url.JoinPath(s.ApiUrl, "events")
-  logging.LogInfo(apiUrl)
 
   jsonValue, _ := json.Marshal(event)
   http.Post(apiUrl, "application/json", bytes.NewBuffer(jsonValue))
